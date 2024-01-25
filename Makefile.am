@@ -5,6 +5,10 @@ if BUILD_FUZZTARGETS
 SUBDIRS += fuzz
 endif
 
+if BUILD_NDPINETFILTER
+SUBDIRS += ndpi-netfilter
+endif
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libndpi.pc
 
@@ -34,6 +38,19 @@ coverage: all
 	mkdir -vp coverage_report/ndpi_coverage_report
 	lcov --directory . --capture --output-file lcov.info
 	genhtml -o coverage_report/ndpi_coverage_report lcov.info
+
+if BUILD_NDPINETFILTER
+dkms:
+	$(MAKE) -C ndpi-netfilter/dkms all
+dkms_install:
+	$(MAKE) -C ndpi-netfilter/dkms install
+dkms_clean:
+	$(MAKE) -C ndpi-netfilter/dkms clean
+dkms_deb:
+	$(MAKE) -C ndpi-netfilter/dkms dkms_deb
+dkms_rpm:
+	$(MAKE) -C ndpi-netfilter/dkms dkms_rpm
+endif
 
 clean-coverage:
 	rm -f lcov.info

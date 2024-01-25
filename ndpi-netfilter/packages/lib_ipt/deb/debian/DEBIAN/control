@@ -1,0 +1,9 @@
+Package: libxt-ndpi
+Version: 4.2
+Architecture: all
+Maintainer: mat3x@mail.ru
+Installed-Size: 39896
+Depends: conntrack, libnetfilter-conntrack-dev, iptables (>= 1.8.2), pkg-config
+Section: misc
+Priority: optional
+Description: ndpi library for iptables.

@@ -71,6 +71,7 @@
 #include "ndpi_private.h"
 
 #include "xt_ndpi.h"
+#include "nft_ndpi.h"
 
 #include "../lib/third_party/include/ndpi_patricia.h"
 
@@ -466,7 +467,7 @@ static struct dbg_ipt_names dbg_ipt_names [] = {
 
 static int net_ns_id=0;
 static int ndpi_net_id;
-static inline struct ndpi_net *ndpi_pernet(struct net *net)
+struct ndpi_net *ndpi_pernet(struct net *net)
 {
 	        return net_generic(net, ndpi_net_id);
 }
@@ -874,7 +875,7 @@ ndpi_alloc_flow (struct nf_ct_ext_ndpi *ct_ndpi)
 
 /*****************************************************************/
 
-static void
+void
 ndpi_enable_protocols (struct ndpi_net *n)
 {
         int i,c=0;
@@ -1398,14 +1399,15 @@ static void pr_dc(const char *msg,uint8_t dc,ndpi_protocol_bitmask_struct_t *ex_
 
 #define pack_proto(proto) ((proto.app_protocol << 16) | proto.master_protocol)
 
-static bool
-ndpi_mt(const struct sk_buff *skb, struct xt_action_param *par)
+bool ndpi_match_proc(
+	const struct sk_buff *skb, const struct xt_ndpi_mtinfo *info,
+	const struct net *par_net, const struct net_device *net_in,
+	const struct net_device *net_out)
 {
 	uint32_t r_proto;
 	ndpi_protocol proto = NDPI_PROTOCOL_NULL;
 	uint64_t time;
 	struct timespec64 tm;
-	const struct xt_ndpi_mtinfo *info = par->matchinfo;
 
 	enum ip_conntrack_info ctinfo;
 	struct nf_conn * ct = NULL;
@@ -1430,7 +1432,7 @@ ndpi_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	ip6h = ipv6_hdr(skb);
 	is_ipv6 = ip6h && ip6h->version == 6;
 #endif
-	n = ndpi_pernet(xt_net(par));
+	n = ndpi_pernet(par_net);
 
 	if(!atomic_read(&n->ndpi_ready)) return 0;
 
@@ -1509,8 +1511,8 @@ ndpi_mt(const struct sk_buff *skb, struct xt_action_param *par)
 				WRITE_ONCE(ct_label->magic, MAGIC_CT);
 	    			ct_create = true;
 				ndpi_init_ct_struct(n,ct_ndpi,l4_proto,ct,is_ipv6,tm.tv_sec);
-				ct_ndpi->flinfo.ifidx = get_in_if(xt_in(par));
-				ct_ndpi->flinfo.ofidx = get_in_if(xt_out(par));
+				ct_ndpi->flinfo.ifidx = get_in_if(net_in);
+				ct_ndpi->flinfo.ofidx = get_in_if(net_out);
 			}
 		} else {
 			if(ct_label->magic == MAGIC_CT)
@@ -1885,6 +1887,12 @@ ndpi_mt(const struct sk_buff *skb, struct xt_action_param *par)
     return result ^ (info->invert != 0);
 }
 
+static bool
+ndpi_mt(const struct sk_buff *skb, struct xt_action_param *par)
+{
+	return ndpi_match_proc(skb, par->matchinfo, xt_net(par), xt_in(par), xt_out(par));
+
+}
 
 static int
 ndpi_mt_check(const struct xt_mtchk_param *par)
@@ -3247,6 +3255,11 @@ static int __init ndpi_mt_init(void)
 		pr_err("xt_ndpi: ip_tables required!\n");
 		return -EOPNOTSUPP;
 	}
+	if (request_module("nf_tables") < 0)
+	{
+		pr_err("xt_ndpi: nf_tables module required!\n");
+		return -EOPNOTSUPP;
+	}
 #ifdef NDPI_DETECTION_SUPPORT_IPV6
 	if(request_module("ip6_tables") < 0) {
 		pr_err("xt_ndpi: ip6_tables required!\n");
@@ -3295,13 +3308,20 @@ static int __init ndpi_mt_init(void)
 		goto unreg_match;
         }
 
+		ret = nft_register_expr(&nft_ndpi_type);
+		if (ret < 0)
+		{
+			pr_err("xt_ndpi: error registering ndpi nft!\n");
+			goto unreg_target;
+		}
+
 	ret = -ENOMEM;
         ct_info_cache = kmem_cache_create("ndpi_ctinfo",
 			ALIGN(sizeof(struct nf_ct_ext_ndpi),__SIZEOF_LONG__),
                                              0, 0, NULL);
         if (!ct_info_cache) {
                 pr_err("xt_ndpi: error creating ct_info cache.\n");
-		goto unreg_target;
+		goto unreg_nft;
         }
         osdpi_flow_cache = kmem_cache_create("ndpi_flows", ndpi_size_flow_struct,
                                              0, 0, NULL);
@@ -3378,7 +3398,9 @@ static int __init ndpi_mt_init(void)
 free_flow:
        	kmem_cache_destroy (osdpi_flow_cache);
 free_ctinfo:
-       	kmem_cache_destroy (ct_info_cache);
+	kmem_cache_destroy(ct_info_cache);
+unreg_nft:
+	nft_unregister_expr(&nft_ndpi_type);
 unreg_target:
 	xt_unregister_target(&ndpi_tg_reg);
 unreg_match:
@@ -3400,6 +3422,7 @@ static void __exit ndpi_mt_exit(void)
 {
 	xt_unregister_target(&ndpi_tg_reg);
 	xt_unregister_match(&ndpi_mt_reg);
+	nft_unregister_expr(&nft_ndpi_type);
 	unregister_pernet_subsys(&ndpi_net_ops);
 #if !defined(USE_LIVEPATCH) && !defined(USE_NF_CONNTRACK_DESTROY_HOOK)
 	nf_ct_extend_unregister(&ndpi_extend);
