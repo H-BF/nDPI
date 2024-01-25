@@ -1,7 +1,7 @@
 variables:
   NEXUS_URL: http://swarm-nexus-ingress-controller.swarm-nexus.svc.k8s.prod-dl/repository
   NEXUS_REPO: swarm-apt-hosted
-  REPODIR: /builds/swarm/swarm/ndpi/ndpi-netfilter/
+  REPODIR: /builds/swarm/swarm/ndpi/
   NDPI_VER: "4.9"
   IMAGE: harbor.wildberries.ru/swarm/swarm/swarmops/docker-factory/deb-builder
   TAG: v0-0-9-1c7e6296
