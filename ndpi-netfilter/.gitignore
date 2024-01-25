@@ -3,6 +3,12 @@
 *o.cmd
 *.[ks]o
 *.mod.c
+*.deb
+*.rpm
+!**/dkms/dkms_dir/
 /src/.tmp_versions/
 /src/Module.symvers
 /src/modules.order
+/src/*.cmd
+/src/*.mod.cmd
+/src/*.mod

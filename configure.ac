@@ -20,6 +20,11 @@ AC_ARG_WITH(sanitizer, AS_HELP_STRING([--with-sanitizer], [Build with support fo
 AC_ARG_WITH(thread-sanitizer, AS_HELP_STRING([--with-thread-sanitizer], [Build with support for thread sanitizer]))
 AC_ARG_WITH(memory-sanitizer, AS_HELP_STRING([--with-memory-sanitizer], [Build with support for memory sanitizer]))
 AC_ARG_WITH(macos-memory-sanitizer, AS_HELP_STRING([--with-macos-memory-sanitizer], [Build with support for memory sanitizer macOS]))
+
+AC_ARG_WITH([ndpi-netfilter], [AS_HELP_STRING([--with-ndpi-netfilter],
+            [Enable build for the ndpi netfilter kernel module])],
+	          [with_ndpinetfilter=$withval], [with_ndpinetfilter=no])
+
 AC_ARG_ENABLE(fuzztargets, AS_HELP_STRING([--enable-fuzztargets], [Enable fuzz targets]),[enable_fuzztargets=$enableval],[enable_fuzztargets=no])
 AC_ARG_ENABLE(gprof, AS_HELP_STRING([--enable-gprof], [Enable CPU/HEAP profiling with gperftools]),[enable_gprof=$enableval],[enable_gprof=no])
 AC_ARG_ENABLE(code-coverage, AS_HELP_STRING([--enable-code-coverage], [Generate Code Coverage report]))
@@ -31,6 +36,12 @@ AC_ARG_WITH(lto-and-gold-linker, AS_HELP_STRING([--with-lto-and-gold-linker], [B
 AC_ARG_ENABLE(debug-build, AS_HELP_STRING([--enable-debug-build], [Enable debug build (`-g` flag)]),[enable_debugbuild=$enableval],[enable_debugbuild=no])
 
 NDPI_CFLAGS="${NDPI_CFLAGS} -D_DEFAULT_SOURCE=1 -D_GNU_SOURCE=1"
+
+AS_IF([test "x$with_ndpinetfilter" = "xyes"], [
+  BUILD_NDPINETFILTER=1
+], [BUILD_NDPINETFILTER=0])
+
+AM_CONDITIONAL([BUILD_NDPINETFILTER], [test "x$with_ndpinetfilter" = "xyes"])
 
 AS_IF([test "x$enable_fuzztargets" = "xyes"], [
   BUILD_FUZZTARGETS=1
@@ -413,6 +424,7 @@ AC_SUBST(NDPI_API_VERSION)
 AC_SUBST(EXTRA_TARGETS)
 AC_SUBST(BUILD_MINGW)
 AC_SUBST(BUILD_MINGW_X64)
+AC_SUBST(BUILD_NDPINETFILTER)
 AC_SUBST(BUILD_FUZZTARGETS)
 AC_SUBST(JSONC_CFLAGS)
 AC_SUBST(JSONC_LIBS)

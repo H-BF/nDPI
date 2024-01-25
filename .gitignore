@@ -23,10 +23,13 @@
 *~
 .autotools
 .cproject
+.vscode
 .dirstamp
 .libs
 .project
 .settings
+MOK.der
+MOK.priv
 .deps
 .Module.symvers.cmd
 .modules.order.cmd
