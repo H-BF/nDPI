@@ -7,6 +7,7 @@ variables:
   TAG: v0-0-9-1c7e6296
 
 stages:
+  - check approve
   - build
   - push-nexus
 
@@ -37,9 +38,6 @@ dkms:
     - mv /var/lib/dkms/xt_ndpi/${PREFIX}/deb/* $REPODIR
   allow_failure: false
   rules:
-    - if: $CI_COMMIT_BRANCH =~ /^feature-.*-\d{1,9}$/ || $CI_COMMIT_BRANCH =~ /^fix-.*-\d{1,9}$/
-      variables:
-        PREFIX: $NDPI_VER-$CI_COMMIT_BRANCH
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       variables:
         PREFIX: $NDPI_VER-$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
