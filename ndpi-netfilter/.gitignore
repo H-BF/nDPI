@@ -12,3 +12,4 @@
 /src/*.cmd
 /src/*.mod.cmd
 /src/*.mod
+dkms/dkms_dir

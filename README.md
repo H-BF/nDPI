@@ -22,6 +22,18 @@ To compile the library w/o any tools or tests:
 - ./autogen.sh --with-only-libndpi
 - make
 
+To compile with the ndpi-netfilter:
+
+- ./autogen.sh
+- ./configure --with-ndpi-netfilter
+- make all
+
+To build dkms package for the ndpi kernel module:
+
+- ./autogen.sh
+- ./configure --with-ndpi-netfilter
+- make dkms-deb
+
 To run tests do additionally:
 
 - ./tests/do.sh # Generate and check for diff's in PCAP files

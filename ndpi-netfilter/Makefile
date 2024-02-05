@@ -1,24 +1,25 @@
 
-.PHONY: all ipt modules modules_install install clean
-.PHONY: clean_modules distclean dkms dkms_install dkms_deb dkms_rpm pkg testnl
-.PHONY: dkms_clean pkg_clean
+.PHONY: all ipt modules modules-install install clean
+.PHONY: clean-modules distclean dkms dkms-install dkms-deb dkms-rpm pkg testnl
+.PHONY: dkms-clean pkg-clean
 
 all:
 	$(MAKE) -C ipt
-	+$(MAKE) -C src
+	$(MAKE) -C src
 
 ipt:
 	$(MAKE) -C ipt
 modules:
 	$(MAKE) -C src
-modules_install:
+modules-install:
 	$(MAKE) -C src modules_install
 install:
 	$(MAKE) -C ipt install
+	$(MAKE) -C src modules_install
 clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C ipt clean
-clean_modules:
+clean-modules:
 	$(MAKE) -C src clean
 	$(MAKE) -C src distclean
 distclean:
@@ -27,17 +28,17 @@ distclean:
 
 dkms:
 	$(MAKE) -C dkms all
-dkms_install:
+dkms-install:
 	$(MAKE) -C dkms install
-dkms_clean:
+dkms-clean:
 	$(MAKE) -C dkms clean
-dkms_deb:
-	$(MAKE) -C dkms dkms_deb
-dkms_rpm:
-	$(MAKE) -C dkms dkms_rpm
+dkms-deb:
+	$(MAKE) -C dkms dkms-deb
+dkms-rpm:
+	$(MAKE) -C dkms dkms-rpm
 
 pkg:
 	$(MAKE) -C packages/lib_ipt/deb all
-pkg_clean:
+pkg-clean:
 	$(MAKE) -C packages/lib_ipt/deb clean
 
