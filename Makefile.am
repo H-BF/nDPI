@@ -41,15 +41,16 @@ coverage: all
 
 if BUILD_NDPINETFILTER
 dkms:
+	$(MAKE) -C src/lib
 	$(MAKE) -C ndpi-netfilter/dkms all
-dkms_install:
+dkms-install: dkms
 	$(MAKE) -C ndpi-netfilter/dkms install
-dkms_clean:
+dkms-clean:
 	$(MAKE) -C ndpi-netfilter/dkms clean
-dkms_deb:
-	$(MAKE) -C ndpi-netfilter/dkms dkms_deb
-dkms_rpm:
-	$(MAKE) -C ndpi-netfilter/dkms dkms_rpm
+dkms-deb: dkms
+	$(MAKE) -C ndpi-netfilter/dkms dkms-deb
+dkms-rpm: dkms
+	$(MAKE) -C ndpi-netfilter/dkms dkms-rpm
 endif
 
 clean-coverage:
@@ -60,4 +61,4 @@ clean-coverage:
 changelog:
 	git log --since={`curl -s https://github.com/ntop/ndpi/releases | grep datetime | head -n1 | egrep -o "[0-9]+\-[0-9]+\-[0-9]+"`} --name-only --pretty=format:" - %s" | grep  "^ " > CHANGELOG.latest
 
-.PHONY: doc doc-view coverage clean-coverage changelog
+.PHONY: doc doc-view coverage clean-coverage changelog dkms dkms-install dkms-clean dkms-deb dkms-rpm

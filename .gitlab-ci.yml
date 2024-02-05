@@ -24,9 +24,7 @@ build:
     - ./configure '--with-ndpi-netfilter'
     - sed -i ./ndpi-netfilter/dkms/dkms.conf -e "s/4.9/$STRIPPED_VERSION/"
     - sed -i ./ndpi-netfilter/dkms/Makefile -e "s/4.9/$STRIPPED_VERSION/"
-    - make -C src/lib
-    - make dkms
-    - make dkms_deb
+    - make dkms-deb
     - mv /var/lib/dkms/xt_ndpi/${STRIPPED_VERSION}/deb/* $REPODIR
   tags:
     - swarm

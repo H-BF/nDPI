@@ -38,7 +38,7 @@ xt_ndpi-y := main.o ndpi_strcol.o ndpi_proc_parsers.o ndpi_proc_generic.o \
 		${NDPI_SRC}/lib/ndpi_hash.o \
 		$(patsubst %.c,%.o, $(NDPI_PROTO_SRC))
 
-all:	modules
+all: modules
 
 test::
 	@echo $(xt_ndpi-y)

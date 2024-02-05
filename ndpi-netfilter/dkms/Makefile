@@ -3,7 +3,7 @@ DKMS_PACKAGE_VERSION="4.9"
 DKMS_DIR = dkms_dir
 DKMS_SETUP_DIR = /usr/src/$(DKMS_PACKAGE_NAME)-$(DKMS_PACKAGE_VERSION)
 
-.PHONY: all install clean dkms_deb dkms_rpm
+.PHONY: all install clean dkms-deb dkms-rpm
 
 all:
 	if [ ! -d "$(DKMS_DIR)" ]; then \
@@ -48,14 +48,14 @@ clean:
 		dkms remove -m $(DKMS_PACKAGE_NAME) -v $(DKMS_PACKAGE_VERSION) --all; \
 	fi
 
-dkms_deb:
+dkms-deb:
 	if ! [ "$(shell id -u)" -eq 0 ]; then \
 		sudo dkms mkdeb -m $(DKMS_PACKAGE_NAME) -v $(DKMS_PACKAGE_VERSION); \
 	else \
 		dkms mkdeb -m $(DKMS_PACKAGE_NAME) -v $(DKMS_PACKAGE_VERSION); \
 	fi \
 
-dkms_rpm:
+dkms-rpm:
 	if ! [ "$(shell id -u)" -eq 0 ]; then \
 		sudo dkms mkrpm -m $(DKMS_PACKAGE_NAME) -v $(DKMS_PACKAGE_VERSION); \
 	else \
