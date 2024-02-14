@@ -1,0 +1,52 @@
+name: release
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Setup environment
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y linux-headers-$(uname -r) autoconf automake autogen \
+            libpcap-dev libtool libgcrypt20-dev dkms build-essential libxtables-dev \
+            ruby-dev dpkg-dev debhelper gcc make iptables pkg-config conntrack libnetfilter-conntrack-dev
+            sudo gem i fpm -f
+
+      - uses: actions/checkout@v4
+
+      - name: Build ndpi deb packages
+        run: |
+          ./autogen.sh
+          ./configure '--with-ndpi-netfilter'
+          sed -i ./ndpi-netfilter/dkms/dkms.conf -e "s/4.9/$STRIPPED_VERSION/"
+          sed -i ./ndpi-netfilter/dkms/Makefile -e "s/4.9/$STRIPPED_VERSION/"
+          make dkms-deb
+          make dkms-rpm
+          sudo mv /var/lib/dkms/xt_ndpi/${STRIPPED_VERSION}/deb/* /home/runner/work/nDPI/nDPI
+          sudo mv /var/lib/dkms/xt_ndpi/${STRIPPED_VERSION}/rpm/* /home/runner/work/nDPI/nDPI
+        env:
+            STRIPPED_VERSION: '${{  github.ref_name  }}'
+
+      - name: Prepare sha256 checksum's
+        run: |
+          sha256sum "$(ls | grep .deb)" > "$(ls | grep .deb)_sha256sum"
+          sha256sum "$(ls | grep .rpm)" > "$(ls | grep .rpm)_sha256sum"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: "./*"
+
+      - uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          draft: True
+          artifacts: "*.deb, *.rpm, *sha256sum"
