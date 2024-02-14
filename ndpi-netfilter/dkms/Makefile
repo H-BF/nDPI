@@ -3,6 +3,8 @@ DKMS_PACKAGE_VERSION="4.9"
 DKMS_DIR = dkms_dir
 DKMS_SETUP_DIR = /usr/src/$(DKMS_PACKAGE_NAME)-$(DKMS_PACKAGE_VERSION)
 
+file_find_provides="/usr/lib/dkms/find-provides"
+
 .PHONY: all install clean dkms-deb dkms-rpm
 
 all:
@@ -10,10 +12,20 @@ all:
 		mkdir -p $(DKMS_DIR)/ndpi-netfilter; \
 	fi
 	cp dkms.conf $(DKMS_DIR)
+	cp xt_ndpi-dkms-mkrpm.spec $(DKMS_DIR)
 	cp -r ../../src $(DKMS_DIR)
 	cp -r ../libre $(DKMS_DIR)/ndpi-netfilter
 	cp -r ../src $(DKMS_DIR)/ndpi-netfilter
 	cp ../Makefile $(DKMS_DIR)/ndpi-netfilter
+
+	if [ ! -f "$(file_find_provides)" ]; then \
+		if ! [ "$(shell id -u)" -eq 0 ]; then \
+			sudo install ./find-provides /usr/lib/dkms/; \
+		else \
+			install ./find-provides /usr/lib/dkms/; \
+		fi \
+	fi
+
 	$(MAKE) -C $(DKMS_DIR)/ndpi-netfilter/src clean
 	$(MAKE) -C $(DKMS_DIR)/ndpi-netfilter/src distclean
 
