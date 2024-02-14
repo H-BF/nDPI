@@ -24,21 +24,25 @@ jobs:
 
       - name: Build ndpi deb packages
         run: |
+          export STRIPPED_VERSION="${STRIPPED_VERSION#v}"
           ./autogen.sh
           ./configure '--with-ndpi-netfilter'
-          sed -i ./ndpi-netfilter/dkms/dkms.conf -e "s/4.9/$STRIPPED_VERSION/"
-          sed -i ./ndpi-netfilter/dkms/Makefile -e "s/4.9/$STRIPPED_VERSION/"
+          sed -i ./ndpi-netfilter/dkms/dkms.conf -e "s|4.9|$STRIPPED_VERSION|"
+          sed -i ./ndpi-netfilter/dkms/Makefile -e "s|4.9|$STRIPPED_VERSION|"
           make dkms-deb
           make dkms-rpm
           sudo mv /var/lib/dkms/xt_ndpi/${STRIPPED_VERSION}/deb/* /home/runner/work/nDPI/nDPI
           sudo mv /var/lib/dkms/xt_ndpi/${STRIPPED_VERSION}/rpm/* /home/runner/work/nDPI/nDPI
         env:
-            STRIPPED_VERSION: '${{  github.ref_name  }}'
+          STRIPPED_VERSION: '${{  github.ref_name  }}'
 
       - name: Prepare sha256 checksum's
         run: |
           sha256sum "$(ls | grep .deb)" > "$(ls | grep .deb)_sha256sum"
-          sha256sum "$(ls | grep .rpm)" > "$(ls | grep .rpm)_sha256sum"
+          for FILE in $(ls | grep .rpm)
+          do 
+            sha256sum "${FILE}" > "${FILE}_sha256sum"
+          done
 
       - uses: actions/checkout@v4
         with:
