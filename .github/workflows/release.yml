@@ -31,15 +31,15 @@ jobs:
           sed -i ./ndpi-netfilter/dkms/Makefile -e "s|4.9|$STRIPPED_VERSION|"
           make dkms-deb
           make dkms-rpm
-          sudo mv /var/lib/dkms/xt_ndpi/${STRIPPED_VERSION}/deb/* /home/runner/work/nDPI/nDPI
-          sudo mv /var/lib/dkms/xt_ndpi/${STRIPPED_VERSION}/rpm/* /home/runner/work/nDPI/nDPI
+          sudo mv /var/lib/dkms/xt_ndpi/${STRIPPED_VERSION}/deb/* /home/runner/work/nDPI/nDPI/${PACKAGE}-${STRIPPED_VERSION}-any.deb
+          sudo mv /var/lib/dkms/xt_ndpi/${STRIPPED_VERSION}/rpm/*noarch.rpm /home/runner/work/nDPI/nDPI/${PACKAGE}-${STRIPPED_VERSION}-any.rpm
         env:
+          PACKAGE: xt-ndpi
           STRIPPED_VERSION: '${{  github.ref_name  }}'
 
       - name: Prepare sha256 checksum's
         run: |
-          sha256sum "$(ls | grep .deb)" > "$(ls | grep .deb)_sha256sum"
-          for FILE in $(ls | grep .rpm)
+          for FILE in $(ls | grep -E "(.deb|.rpm)")
           do 
             sha256sum "${FILE}" > "${FILE}_sha256sum"
           done
